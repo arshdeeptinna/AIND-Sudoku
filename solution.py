@@ -35,7 +35,16 @@ def assign_value(values, box, value):
     return values
 
 def eliminate_twins(values, peers, value):
-
+    """ 
+        Helper function for naked twins
+        Removes naked twin values from peers
+        Args: 
+            values(dict): a dictionary of the form {'box_name': '123456789', ...}
+            peers(list): a list of the form ['A1', ...]
+            value(string): a string containing naked twin value eg. '234'
+        Returns:
+            the values dictionary with the naked twins eliminated from peers.
+    """
     for peer in peers:
         peer_val = values[peer]
         if peer_val != value:
@@ -57,16 +66,13 @@ def naked_twins(values):
     # Eliminate the naked twins as possibilities for their peers
     pboxes = [box for box in boxes if len(values[box]) == 2]
     for box in pboxes:
-        #print(peers[box])
-        pot_twins = [peer for peer in peers[box] if len(values[peer]) >= len(values[box])]
-        #print(ppeers)
+        pot_twins = [peer for peer in peers[box] if len(values[peer]) >= len(values[box])] 
         for peer in pot_twins:
-            if len(values[box]) == 2 and values[box] == values[peer]:
-                #print(box, peer)
-                #print(ppeers)
-                com_peers = [p for p in pot_twins if p in peers[peer]]
-                values = eliminate_twins(values, com_peers, values[box])
-                #print(values)
+            if values[box] == values[peer]:
+                # Find all common peers of naked twins
+                common_peers = [p for p in pot_twins if p in peers[peer]]
+                # Remove twin values from all common peers
+                values = eliminate_twins(values, common_peers, values[box])
     return values
 
 def display(values):
@@ -141,6 +147,8 @@ def reduce_puzzle(values):
         # Your code here: Use the Only Choice Strategy
         values = only_choice(values)
         # Check how many boxes have a determined value, to compare
+        # Check for any naked twins
+        values = naked_twins(values)
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
         stalled = solved_values_before == solved_values_after
